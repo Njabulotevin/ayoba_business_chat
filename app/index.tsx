@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   return (
-    <View>
+    <ScrollView style={{flex: 1}}>
       <View style={styles.storiesWrapper}>
         <View style={styles.storyWrapper}>
           <View style={styles.story}>
@@ -17,9 +17,10 @@ export default function Index() {
           </Text>
         </View>
       </View>
-      <ScrollView style={{height: 450}}>
+      <ScrollView >
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((user)=>{
           return <ChatUser
+          key={user}
           name={"27 78 471 7846"}
           message={"testing message"}
           time={"20:45"}
@@ -27,7 +28,7 @@ export default function Index() {
         />
         })}
       </ScrollView>
-    </View>
+    </ScrollView>
   );
 }
 

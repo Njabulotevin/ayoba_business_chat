@@ -1,4 +1,11 @@
-import { Pressable, StyleSheet, Text, Touchable, View } from "react-native";
+import {
+  ImageBackground,
+  Pressable,
+  StyleSheet,
+  Text,
+  Touchable,
+  View,
+} from "react-native";
 import React, { useEffect } from "react";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { randomColours } from "@/components/utils/scripts";
@@ -21,6 +28,8 @@ const Chats = () => {
             flexDirection: "row",
             alignItems: "center",
             gap: 10,
+            shadowColor: "black",
+            shadowRadius: 10
           }}
         >
           <Pressable
@@ -40,9 +49,9 @@ const Chats = () => {
               {name[0]}
             </Text>
           </View>
-          <View style={{flexDirection: "column", gap: 5}}>
+          <View style={{ flexDirection: "column", gap: 5 }}>
             <Text style={{ fontSize: 16, fontWeight: "600" }}>{name}</Text>
-            <Text style={{ fontSize: 16,  color: "#02609E" }}>Online</Text>
+            <Text style={{ fontSize: 16, color: "#02609E" }}>Online</Text>
           </View>
         </GestureHandlerRootView>
       ),
@@ -52,9 +61,11 @@ const Chats = () => {
   }, [navigation]);
 
   return (
-    <View>
-      <Text>{name}</Text>
-    </View>
+    <ImageBackground source={require("@/assets/images/bg.png")} style={{flex: 1}} resizeMode="cover" >
+      <View>
+        <Text>{name}</Text>
+      </View>
+    </ImageBackground>
   );
 };
 
