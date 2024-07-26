@@ -11,14 +11,16 @@ export default function RootLayout() {
           header: () => (
             <View style={styles.header}>
               <Text style={styles.title}>Business Chat</Text>
-              <View style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 14
-              }}>
-                <Ionicons name="search" size={20}/>
-                <Ionicons name="ellipsis-vertical" size={20}/>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: 14,
+                }}
+              >
+                <Ionicons name="search" size={20} />
+                <Ionicons name="ellipsis-vertical" size={20} />
                 <View style={styles.profile}>
                   <Ionicons name="person" color="#AFB4B7" size={25} />
                 </View>
@@ -27,7 +29,8 @@ export default function RootLayout() {
           ),
         }}
       />
-        <Stack.Screen name="[name]"/>
+      <Stack.Screen name="[name]" />
+      <Stack.Screen name="(Tabs)" options={{headerShown:false}} />
     </Stack>
   );
 }
