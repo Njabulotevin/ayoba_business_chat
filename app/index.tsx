@@ -1,8 +1,6 @@
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React ,{ useState } from 'react';;
-import Input from '@/components/Input';
-import { router } from 'expo-router';
-import PrimaryButton from '@/components/Button';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React ,{ useState } from 'react';
+import { TextInput } from 'react-native-gesture-handler';
 
 
 const Index = () => {
@@ -12,19 +10,29 @@ const Index = () => {
   return (
     <View style={styles}>
     <Text style={styles}>Login</Text>
-    <Input
-              style={styles}
-              placeholder="Username"
-              value={username}
-              onChangeText={setUsername} title={''} isError={undefined} error={undefined}    />
-    <Input
-              style={styles}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry title={''} isError={undefined} error={undefined}    />
+    <TextInput
+      style={styles}
+      placeholder="Username"
+      value={username}
+      onChangeText={setUsername}
+    />
+    <TextInput
+      style={styles}
+      placeholder="Password"
+      value={password}
+      onChangeText={setPassword}
+      secureTextEntry
+    />
     <View style={styles}>
-      <PrimaryButton title="login" onPress={()=>router.push("/(tabs)")}/>
+      <TouchableOpacity style={styles}>
+        <Text style={styles}>Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles}>
+        <Text style={styles}>Register</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles} disabled>
+        <Text style={styles}>Forgot Password</Text>
+      </TouchableOpacity>
     </View>
   </View>
   )
