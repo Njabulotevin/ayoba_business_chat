@@ -20,24 +20,27 @@ const Layout = () => {
       <Tabs.Screen
         name="support"
         options={{
+          title: "Support",
           tabBarIcon: () => (
-            <Ionicons name="chatbox-ellipses-outline" color="black" size={25} />
+            <Ionicons name="person-outline" color="black" size={25} />
           ),
         }}
       />
       <Tabs.Screen
         name="orders"
         options={{
+          title: "Order",
           tabBarIcon: () => (
-            <Ionicons name="chatbox-ellipses-outline" color="black" size={25} />
+            <Ionicons name="receipt-outline" color="black" size={25} />
           ),
         }}
       />
       <Tabs.Screen
         name="products"
         options={{
+          title: "Products",
           tabBarIcon: () => (
-            <Ionicons name="chatbox-ellipses-outline" color="black" size={25} />
+            <Ionicons name="cube-outline" color="black" size={25} />
           ),
         }}
       />
