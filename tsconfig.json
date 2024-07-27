@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "../../wazi/medi_assist_mobile/types/error.ts", "../../wazi/medi_assist_mobile/types/userTypes.ts"  ]
 }

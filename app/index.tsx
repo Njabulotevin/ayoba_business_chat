@@ -1,7 +1,8 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React ,{ useState } from 'react';;
 import Input from '@/components/Input';
 import { router } from 'expo-router';
+import PrimaryButton from '@/components/Button';
 
 
 const Index = () => {
@@ -23,9 +24,7 @@ const Index = () => {
               onChangeText={setPassword}
               secureTextEntry title={''} isError={undefined} error={undefined}    />
     <View style={styles}>
-      <TouchableOpacity style={styles}>
-        <Text style={styles} onPress={()=>router.push("/(tabs)")}>Login</Text>
-      </TouchableOpacity>
+      <PrimaryButton title="login" onPress={()=>router.push("/(tabs)")}/>
     </View>
   </View>
   )
