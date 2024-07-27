@@ -44,6 +44,15 @@ const Layout = () => {
           ),
         }}
       />
+      <Tabs.Screen
+        name="services"
+        options={{
+          title: "Services",
+          tabBarIcon: () => (
+            <Ionicons name="people-outline" color="black" size={25} />
+          ),
+        }}
+      />
     </Tabs>
   );
 };
