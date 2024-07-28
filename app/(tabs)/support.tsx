@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Button, ImageBackground, Pressable, StyleSheet, Text, View, TextInput } from 'react-native';
+import { Button, ImageBackground, Pressable, StyleSheet, Text, View, TextInput, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { randomColours } from '@/components/utils/scripts';
 import { Ionicons } from '@expo/vector-icons';
 import MessageBubble, { MessageType } from '@/components/messageBubble';
 import { useFormik } from 'formik';
-import { useGetMessages, useSendMessage } from '@/services/hooks/messages';
+import axios from 'axios';
 
 interface Message {
   message: String;
@@ -15,9 +15,6 @@ interface Message {
 
 const Support = () => {
   const navigation = useNavigation();
-  const { mutate, isError, error, isSuccess } = useSendMessage();
-
-  const { data } = useGetMessages();
 
   const headerComponent = useMemo(
     () => (
@@ -45,10 +42,6 @@ const Support = () => {
     console.log('AI Support');
   }, [navigation, headerComponent]);
 
-  useEffect(() => {
-    console.log(data);
-  });
-
   const [messages, setMessages] = useState<Message[]>([
     {
       message: 'Hello! How can I assist you today?',
@@ -59,22 +52,40 @@ const Support = () => {
 
   const { values, handleChange, handleSubmit, resetForm } = useFormik({
     initialValues: { message: '' },
-    onSubmit: (values, actions) => {
-      console.log(values);
-      setMessages([
-        ...messages,
+    onSubmit: async (values, actions) => {
+      const userMessage = values.message.trim();
+      const time = new Date().toLocaleTimeString().slice(0, 5);
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
         {
-          message: values.message,
+          message: userMessage,
           type: MessageType.user,
-          time: '10:40',
+          time,
         },
       ]);
 
-      mutate({
-        msisdns: ['+27648917936'],
-        message_type: 'text',
-        message_text: values.message,
-      });
+      try {
+        const response = await axios.post('https://gatewayapi-e65e2b5c01f7.herokuapp.com/customer-assistance/queries/', 
+          { query: userMessage },
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+
+        const result = response.data;
+
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            message: result.response,
+            type: MessageType.guest,
+            time: new Date().toLocaleTimeString().slice(0, 5),
+          },
+        ]);
+      } catch (error) {
+        console.error('Fetch error:', error);
+        Alert.alert('Error', `An unexpected error occurred. ${error.response ? error.response.data.message : error.message}`);
+      }
+
       actions.resetForm();
     },
   });
@@ -85,13 +96,13 @@ const Support = () => {
       style={styles.background}
       resizeMode="cover"
     >
-      <View style={{ flexDirection: 'column', justifyContent: 'space-between', flex: 1 }}>
-        <View style={styles.messagesContainer}>
+      <View style={styles.container}>
+        <ScrollView style={styles.messagesContainer}>
           {messages.map((message, index) => (
             <MessageBubble key={index} messageType={message.type} message={message.message} time={message.time} />
           ))}
-        </View>
-        <View style={{ backgroundColor: 'white', flexDirection: 'row', alignItems: 'center', padding: 10 }}>
+        </ScrollView>
+        <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
             onChangeText={handleChange('message')}
@@ -147,10 +158,22 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-  messagesContainer: {
+  container: {
+    flex: 1,
+    justifyContent: 'space-between',
     padding: 10,
-    flexDirection: 'column',
-    gap: 10,
+  },
+  messagesContainer: {
+    flex: 1,
+    padding: 10,
+  },
+  inputContainer: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
   },
   input: {
     flex: 1,

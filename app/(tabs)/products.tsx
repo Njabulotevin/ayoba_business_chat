@@ -1,39 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import endpoints from '@/services/endpoints'
+import { useRouter } from 'expo-router';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const navigation = useNavigation();
+  const router = useRouter();
 
   useEffect(() => {
+    // Simulating a network request to fetch products
+    const fetchProducts = async () => {
+      try {
+        // Here you can replace this with a real API call if needed
+        const dummyProducts = [
+          { id: 1, name: 'T-Shirt', price: 'R100.00', image: 'https://via.placeholder.com/80' },
+          { id: 2, name: 'Jeans', price: 'R200.00', image: 'https://via.placeholder.com/80' },
+          { id: 3, name: 'Hoddie', price: 'R300.00', image: 'https://via.placeholder.com/80' },
+          { id: 4, name: 'Uzzi Jacket', price: 'R400.00', image: 'https://via.placeholder.com/80' },
+        ];
+
+        setProducts(dummyProducts);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        Alert.alert('Error', 'Failed to load products. Please try again later.');
+      }
+    };
+
     fetchProducts();
   }, []);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch(endpoints.products);
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data);
-      } else {
-        Alert.alert('Error', 'Failed to fetch products');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
-    }
-  };
-
   const handleAddProduct = () => {
-    navigation.navigate('AddProduct');
+    router.push('/AddProduct');
   };
 
   const renderProduct = ({ item }) => (
     <View style={styles.productItem}>
-      <Text style={styles.productName}>{item.name}</Text>
-      <Text style={styles.productPrice}>{item.price}</Text>
+      <Image source={{ uri: item.image }} style={styles.productImage} />
+      <View style={styles.productInfo}>
+        <Text style={styles.productName}>{item.name}</Text>
+        <Text style={styles.productPrice}>{item.price}</Text>
+      </View>
     </View>
   );
 
@@ -64,6 +71,7 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
   productItem: {
+    flexDirection: 'row',
     backgroundColor: '#fff',
     padding: 16,
     borderRadius: 10,
@@ -72,6 +80,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
+  },
+  productImage: {
+    width: 80,
+    height: 80,
+    marginRight: 16,
+  },
+  productInfo: {
+    flex: 1,
+    justifyContent: 'center',
   },
   productName: {
     fontSize: 18,

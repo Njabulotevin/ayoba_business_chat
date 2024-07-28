@@ -1,6 +1,6 @@
 import ChatUser, { Status } from "@/components/ChatUser";
 import { Ionicons } from "@expo/vector-icons";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native"
 
 export default function Index() {
   return (

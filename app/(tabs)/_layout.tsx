@@ -45,11 +45,11 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="services"
+        name="Invocies"
         options={{
-          title: "Services",
+          title: "Invocies",
           tabBarIcon: () => (
-            <Ionicons name="people-outline" color="black" size={25} />
+            <Ionicons name="document-outline" color="black" size={25} />
           ),
         }}
       />
