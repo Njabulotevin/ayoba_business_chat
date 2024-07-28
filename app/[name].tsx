@@ -61,17 +61,16 @@ const Chats = () => {
   useEffect(() => {
     const intervalId = setInterval(async () => {
       await startPollingForMessages();
-    }, 5000); // Poll every 5 seconds
+    }, 10000);
 
-    return () => clearInterval(intervalId); // Cleanup on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const { values, handleChange, handleSubmit, resetForm } = useFormik({
     initialValues: { message: "" },
     onSubmit: async (values, actions) => {
-      console.log(values);
       const newMessage = {
-        id: Date.now(), // Temporarily use current timestamp as ID
+        id: Date.now(),
         message: values.message,
         type: MessageType.user,
         time: new Date().toLocaleTimeString(),
@@ -87,28 +86,24 @@ const Chats = () => {
     },
   });
 
-  const sendMessage = async (message: string) => {
+  const sendMessage = async (message) => {
     let customer_response = await fetchCustomers();
-    console.log("Current Customer: ", customer_response);
     let customer_language = "zulu";
     customer_language = getLanguageCode(customer_language);
-    const customer_choice = await translateForUser(message, "eng_Latn", customer_language);
+    const translatedMessage = await translateForUser(message, "eng_Latn", customer_language);
 
     try {
-      // Send the message to the server
       const response = await axios.post('https://gatewayapi-e65e2b5c01f7.herokuapp.com/api/messages/', {
-        msisdns: ["+27827133921"], // Ensure this is properly formatted
+        msisdns: ["+27827133921"],
         message_type: 'text',
-        message_text: customer_choice,
+        message_text: translatedMessage,
       });
 
       if (response.status !== 200) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      // Start polling for a response
       startPollingForMessages();
-
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -116,7 +111,6 @@ const Chats = () => {
 
   const startPollingForMessages = async () => {
     try {
-      // Fetch messages from the server
       const response = await axios.get('https://gatewayapi-e65e2b5c01f7.herokuapp.com/api/messages/');
 
       if (response.status !== 200) {
@@ -128,7 +122,6 @@ const Chats = () => {
 
       if (latestMessages.length > 0) {
         let customer_response = await fetchCustomers();
-        console.log("Current Customer: ", customer_response);
         let customer_language = "zulu";
         customer_language = getLanguageCode(customer_language);
 
@@ -136,7 +129,7 @@ const Chats = () => {
           latestMessages.map(async (message) => {
             const translatedMessage = await translateForUser(message.text, customer_language, "eng_Latn");
             return {
-              id: message.id, // Use message ID from the server
+              id: message.id,
               message: translatedMessage,
               type: MessageType.guest,
               time: new Date().toLocaleTimeString(),
@@ -144,33 +137,24 @@ const Chats = () => {
           })
         );
 
-        // Filter out messages that have already been displayed
         const newMessages = translatedMessages.filter(msg => !displayedMessageIds.has(msg.id));
 
-        // Update the state with the new messages
         setMessages((prevMessages) => [...prevMessages, ...newMessages]);
         setLastMessageId(latestMessages[latestMessages.length - 1].id);
         setDisplayedMessageIds(prev => new Set([...prev, ...newMessages.map(msg => msg.id)]));
       }
-
     } catch (error) {
       console.error("Error polling messages:", error);
     }
   };
 
-  const getLatestTextMessages = async (messages: any[]) => {
-    console.log("LATEST MESSAGES:", messages);
-
-    // Filter messages that are of type 'text' and are new
-    const textMessages = messages.filter(msg => msg.message_type === "text" && (!lastMessageId || msg.id > lastMessageId));
-
-    return textMessages;
+  const getLatestTextMessages = async (messages) => {
+    return messages.filter(msg => msg.message_type === "text" && (!lastMessageId || msg.id > lastMessageId));
   };
 
   const fetchCustomers = async () => {
     try {
       const response = await axios.get('https://gatewayapi-e65e2b5c01f7.herokuapp.com/api/customers/');
-      
       if (response.status !== 200) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
@@ -181,7 +165,7 @@ const Chats = () => {
     }
   };
 
-  const getLanguageCode = (customer_language: string) => {
+  const getLanguageCode = (customer_language) => {
     const languageCodes = {
       "northern sotho": "nso_Latn",
       "afrikaans": "afr_Latn",
@@ -196,50 +180,35 @@ const Chats = () => {
     return languageCodes[customer_language] || "eng_Latn";
   };
 
-  const translateForUser = async (text: string, config: string, choice: string) => {
-    // Validate the input
-    console.log("Translating: ", text, choice);
-    if (!text || !choice) {
-      console.error("Text and language choice are required.");
-      return;
-    }
+  const translateForUser = async (text, sourceLang, targetLang) => {
+    const TRANSLATION_URL = "https://vulavula-services.lelapa.ai/api/v1/translate/process";
+    const VULAVULA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM1ZDk1NGU0MzMyMTQ4MzNhNzk0NmM5NmZkMTYyZTdkIiwiY2xpZW50X2lkIjo2NCwicmVxdWVzdHNfcGVyX21pbnV0ZSI6MCwibGFzdF9yZXF1ZXN0X3RpbWUiOm51bGx9.1HchJDhAt2lYrK-dGdpVvDhx7S79DtL5VcFpI-9b7F4";
 
-    // Define the endpoint URL (update with your actual endpoint if necessary)
-    const endpoint = 'https://gatewayapi-e65e2b5c01f7.herokuapp.com/api/translate/';
-
-    // Create the payload
     const payload = {
-      text: text,
-      choice: choice,
-      config: config,
+      input_text: text,
+      source_lang: sourceLang,
+      target_lang: targetLang,
     };
 
     try {
-      // Send the POST request to the translation endpoint
-      const response = await axios.post(endpoint, payload, {
+      const response = await axios.post(TRANSLATION_URL, payload, {
         headers: {
-          'Content-Type': 'application/json',
+          "X-CLIENT-TOKEN": VULAVULA_TOKEN,
+          "Content-Type": "application/json",
         },
       });
 
-      // Check if the response is ok
-      if (response.status !== 200) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      if (response.status === 200) {
+        return response.data.translation[0].translation_text;
+      } else {
+        throw new Error("Failed to translate text");
       }
-
-      // Parse the JSON response
-      const result = response.data;
-
-      // Display or return the translated text
-      console.log("Translated Text:", result.translated_text);
-      return result.translated_text;
-
     } catch (error) {
-      // Handle any errors
       console.error("Error translating text:", error);
       return "Error translating text.";
     }
   };
+
   return (
     <GestureHandlerRootView>
       <ImageBackground
@@ -251,7 +220,7 @@ const Chats = () => {
           <ScrollView style={styles.messagesContainer}>
             {messages.map((message) => (
               <MessageBubble
-                key={message.id} // Use message ID as the key
+                key={message.id}
                 messageType={message.type}
                 message={message.message}
                 time={message.time}
