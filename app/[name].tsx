@@ -240,7 +240,6 @@ const Chats = () => {
       return "Error translating text.";
     }
   };
-
   return (
     <GestureHandlerRootView>
       <ImageBackground
@@ -259,7 +258,6 @@ const Chats = () => {
               />
             ))}
           </ScrollView>
-          
           <View style={{ backgroundColor: "white", flexDirection: "row", gap: 10, padding: 10 }}>
             <TextInput
               placeholder="Type your message..."
@@ -281,7 +279,6 @@ const Chats = () => {
               <Ionicons name="send-outline" color="white" size={24} />
             </TouchableOpacity>
           </View>
-          
         </View>
       </ImageBackground>
     </GestureHandlerRootView>
