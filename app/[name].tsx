@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  Button,
   ImageBackground,
   Pressable,
   StyleSheet,
@@ -19,9 +18,10 @@ import axios from "axios";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 interface Message {
-  message: String;
+  id: number;
+  message: string;
   type: MessageType;
-  time: String;
+  time: string;
 }
 
 const Chats = () => {
@@ -55,6 +55,8 @@ const Chats = () => {
   }, [navigation, headerComponent]);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [lastMessageId, setLastMessageId] = useState<number | null>(null);
+  const [displayedMessageIds, setDisplayedMessageIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
@@ -68,14 +70,13 @@ const Chats = () => {
     initialValues: { message: "" },
     onSubmit: async (values, actions) => {
       console.log(values);
-      setMessages([
-        ...messages,
-        {
-          message: values.message,
-          type: MessageType.user,
-          time: new Date().toLocaleTimeString(),
-        },
-      ]);
+      const newMessage = {
+        id: Date.now(), // Temporarily use current timestamp as ID
+        message: values.message,
+        type: MessageType.user,
+        time: new Date().toLocaleTimeString(),
+      };
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
 
       try {
         await sendMessage(values.message);
@@ -86,7 +87,7 @@ const Chats = () => {
     },
   });
 
-  const sendMessage = async (message) => {
+  const sendMessage = async (message: string) => {
     let customer_response = await fetchCustomers();
     console.log("Current Customer: ", customer_response);
     let customer_language = "zulu";
@@ -123,25 +124,33 @@ const Chats = () => {
       }
 
       const result = response.data;
-      const latestMessage = await getLatestTextMessage(result);
+      const latestMessages = await getLatestTextMessages(result);
 
-      if (latestMessage) {
-        console.log("Latest Message:", latestMessage);
+      if (latestMessages.length > 0) {
         let customer_response = await fetchCustomers();
         console.log("Current Customer: ", customer_response);
         let customer_language = "zulu";
         customer_language = getLanguageCode(customer_language);
-        const customer_choice = await translateForUser(latestMessage, customer_language, "eng_Latn");
 
-        // Update the state with the bot's message
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            message: customer_choice,
-            type: MessageType.guest,
-            time: new Date().toLocaleTimeString(),
-          },
-        ]);
+        const translatedMessages = await Promise.all(
+          latestMessages.map(async (message) => {
+            const translatedMessage = await translateForUser(message.text, customer_language, "eng_Latn");
+            return {
+              id: message.id, // Use message ID from the server
+              message: translatedMessage,
+              type: MessageType.guest,
+              time: new Date().toLocaleTimeString(),
+            };
+          })
+        );
+
+        // Filter out messages that have already been displayed
+        const newMessages = translatedMessages.filter(msg => !displayedMessageIds.has(msg.id));
+
+        // Update the state with the new messages
+        setMessages((prevMessages) => [...prevMessages, ...newMessages]);
+        setLastMessageId(latestMessages[latestMessages.length - 1].id);
+        setDisplayedMessageIds(prev => new Set([...prev, ...newMessages.map(msg => msg.id)]));
       }
 
     } catch (error) {
@@ -149,23 +158,13 @@ const Chats = () => {
     }
   };
 
-  const delay = (ms) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  };
-
-  const getLatestTextMessage = async (messages) => {
+  const getLatestTextMessages = async (messages: any[]) => {
     console.log("LATEST MESSAGES:", messages);
 
-    // Filter messages that are of type 'text'
-    const textMessages = messages.filter(msg => msg.message_type === "text");
+    // Filter messages that are of type 'text' and are new
+    const textMessages = messages.filter(msg => msg.message_type === "text" && (!lastMessageId || msg.id > lastMessageId));
 
-    // Check if there are any text messages
-    if (textMessages.length > 0) {
-      // Return the text of the last message
-      return textMessages[textMessages.length - 1].text;
-    } else {
-      return null; // No text messages found
-    }
+    return textMessages;
   };
 
   const fetchCustomers = async () => {
@@ -182,31 +181,22 @@ const Chats = () => {
     }
   };
 
-  const getLanguageCode = (customer_language) => {
-    if (customer_language === "northern sotho") {
-      return "nso_Latn";
-    } else if (customer_language === "afrikaans") {
-      return "afr_Latn";
-    } else if (customer_language === "southern Sotho") {
-      return "sot_Latn";
-    } else if (customer_language === "swati") {
-      return "ssw_Latn";
-    } else if (customer_language === "tsonga") {
-      return "tso_Latn";
-    } else if (customer_language === "setswana") {
-      return "tsn_Latn";
-    } else if (customer_language === "xhosa") {
-      return "xho_Latn";
-    } else if (customer_language === "zulu") {
-      return "zul_Latn";
-    } else if (customer_language === "swahili") {
-      return "swh_Latn";
-    } else {
-      return "eng_Latn"; // or some default value
-    }
+  const getLanguageCode = (customer_language: string) => {
+    const languageCodes = {
+      "northern sotho": "nso_Latn",
+      "afrikaans": "afr_Latn",
+      "southern Sotho": "sot_Latn",
+      "swati": "ssw_Latn",
+      "tsonga": "tso_Latn",
+      "setswana": "tsn_Latn",
+      "xhosa": "xho_Latn",
+      "zulu": "zul_Latn",
+      "swahili": "swh_Latn",
+    };
+    return languageCodes[customer_language] || "eng_Latn";
   };
 
-  const translateForUser = async (text, config, choice) => {
+  const translateForUser = async (text: string, config: string, choice: string) => {
     // Validate the input
     console.log("Translating: ", text, choice);
     if (!text || !choice) {
@@ -260,9 +250,9 @@ const Chats = () => {
       >
         <View style={{ flexDirection: "column", justifyContent: "space-between", flex: 1 }}>
           <ScrollView style={styles.messagesContainer}>
-            {messages.map((message, index) => (
+            {messages.map((message) => (
               <MessageBubble
-                key={index}
+                key={message.id} // Use message ID as the key
                 messageType={message.type}
                 message={message.message}
                 time={message.time}

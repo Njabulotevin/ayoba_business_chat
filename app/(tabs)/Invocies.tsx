@@ -37,8 +37,9 @@ const Invoices = () => {
     fetchInvoices();
   }, []);
 
-  const handleViewInvoice = (invoiceId: number) => {
-    router.push(`/InvoiceDetails/${invoiceId}`);
+  const handleViewInvoice = (invoiceId: string) => {
+    router.push(`/InvoiceDetails/[id]`);
+    router.setParams({id : invoiceId})
   };
 
   const renderInvoice = ({ item }: { item: Invoice }) => (
